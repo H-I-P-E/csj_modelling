@@ -127,3 +127,7 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+#SSH files
+github_ssh
+github_ssh.pub
