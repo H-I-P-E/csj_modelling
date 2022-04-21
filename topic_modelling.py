@@ -3,6 +3,8 @@ from os import getenv
 from io import StringIO
 from decouple import config
 import pandas as pd
+import re
+from bertopic import BERTopic
 
 
 #Connect to the data in s3
@@ -18,7 +20,25 @@ for file in sample_files:
     all_raw_data.append(raw_data)
 combined_data = pd.concat(all_raw_data)
 
-columns = ["date_downloaded", "department", "Job description", "title", "Grade"]
-#combined_data =combined_data['variable'].str.contains('|'.join(columns),regex=True)
+columns = ["date_downloaded", "department", "Job description", "title", "Grade", "Summary", "Responsibilities", "Business area", "Technical skills"]
+combined_data = combined_data[combined_data['variable'].str.contains('|'.join(columns),regex=True)]
+combined_data = combined_data.pivot(index='job_ref',columns='variable',values='value')
 
-print(combined_data['variable'].value_counts())
+
+#combined_data['processed_job_description'] = combined_data['Job description'].map(lambda x: re.sub('[,\.!?]', '', x).lower())
+#print(combined_data)
+
+##BERTopic modelling
+
+model = BERTopic(verbose=True, nr_topics = 10)
+job_descriptions = combined_data['Job description'].to_list()
+topics, probabilities = model.fit_transform(job_descriptions)
+
+print(job_descriptions)
+
+
+print(model.get_topic_freq().head(11))
+
+print(model.get_topic(1))
+
+
